@@ -1,0 +1,12 @@
+/* Estilos básicos para o componente */
+:host {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    margin: auto;
+  }
+  
+  canvas {
+    max-width: 100%;
+  }
+  
