@@ -1,4 +1,70 @@
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html, body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* Personalização da mat-toolbar */
+.mat-toolbar {
+  background-color: #00579d !important; /* Cor personalizada */
+  color: #ffffff !important; /* Cor do texto */
+}
+
+/* Tema personalizado do Angular Material */
+@import '~@angular/material/theming';
+
+/* Substituição de variáveis não definidas */
+$white: #ffffff; /* Branco */
+$black-87-opacity: rgba(0, 0, 0, 0.87); /* Preto com 87% de opacidade */
+
+/* Paleta de cores personalizadas */
+$custom-primary: (
+  50: #e0f2ff,
+  100: #b3e0ff,
+  200: #80ccff,
+  300: #4db8ff,
+  400: #26a6ff,
+  500: #008cff,
+  600: #007dff,
+  700: #00579d, /* Tom principal */
+  800: #004d8c,
+  900: #003a6b,
+  A100: #b3ccff,
+  A200: #8099ff,
+  A400: #4d66ff,
+  A700: #264dff,
+  contrast: (
+    50: $black-87-opacity,
+    100: $black-87-opacity,
+    200: $black-87-opacity,
+    300: $black-87-opacity,
+    400: $black-87-opacity,
+    500: $white,
+    600: $white,
+    700: $white,
+    800: $white,
+    900: $white,
+    A100: $black-87-opacity,
+    A200: $white,
+    A400: $white,
+    A700: $white,
+  )
+);
+
+$custom-accent: mat-palette($mat-pink, A200);
+$custom-warn: mat-palette($mat-red);
+
+$app-theme: mat-light-theme((
+  color: (
+    primary: mat-palette($custom-primary),
+    accent: $custom-accent,
+    warn: $custom-warn,
+  )
+));
+
+/* Aplicação do tema */
+@include angular-material-theme($app-theme);

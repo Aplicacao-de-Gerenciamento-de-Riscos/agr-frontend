@@ -12,12 +12,15 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { DashboardGraphComponent } from './dashboard/dashboard-graph/dashboard-graph.component';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { ChartExplanationModalComponent } from './chart-explanation-modal/chart-explanation-modal.component';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [
     AppComponent,
     DashboardComponent,
     DashboardGraphComponent,
+    ChartExplanationModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -28,6 +31,8 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
     MatListModule,
     MatIconModule,
     NgxChartsModule,
+    MatDialogModule,
+    MatIconModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
