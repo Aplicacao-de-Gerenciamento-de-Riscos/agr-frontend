@@ -1,3 +1,20 @@
+<div class="dashboard-header">
+  <div class="header-block">
+    <div class="header-title">
+      <span>Gráficos de Gerenciamento de Riscos</span>
+    </div>
+    <div class="header-filters">
+      <mat-form-field appearance="fill">
+        <mat-label>Selecionar Projeto</mat-label>
+        <mat-select [(value)]="selectedProject" (selectionChange)="onProjectChange($event)">
+          <mat-option value="all">Todos</mat-option>
+          <mat-option *ngFor="let project of projects" [value]="project">{{ project }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+</div>
+
 <div class="dashboard-container">
   <!-- Linha superior -->
   <div class="top-row">
@@ -5,7 +22,7 @@
     <div class="graph-block large">
       <div class="graph-header">
         <div class="graph-title">
-          Risco de Atraso por Versão
+          <span>Previsão de Risco de Atraso por Versão</span>
           <mat-icon
             (click)="openExplanation('Risco de Atraso por Versão', 'Este gráfico mostra o percentual de risco de atraso para cada versão do projeto.')">help_outline</mat-icon>
         </div>
@@ -18,7 +35,7 @@
     <div class="graph-block large">
       <div class="graph-header">
         <div class="graph-title">
-          Percentual de Entrega por Tipo de Issue
+          <span>Percentual de Entrega por Tipo de Issue</span>
           <mat-icon
             (click)="openExplanation('Percentual de Entrega por Tipo de Issue', 'Este gráfico exibe a porcentagem de entrega de issues agrupadas por tipo de issue.')">help_outline</mat-icon>
         </div>
@@ -34,7 +51,7 @@
     <div class="graph-block small">
       <div class="graph-header">
         <div class="graph-title">
-          Porcentagem de Bugs por Versão
+          <span>Porcentagem de Bugs por Versão</span>
           <mat-icon
             (click)="openExplanation('Porcentagem de Bugs por Versão', 'Este gráfico apresenta a porcentagem de bugs detectados em cada versão.')">help_outline</mat-icon>
         </div>
@@ -47,7 +64,7 @@
     <div class="graph-block small">
       <div class="graph-header">
         <div class="graph-title">
-          Percentual de Issues Críticas
+          <span>Percentual de Issues Críticas</span>
           <mat-icon
             (click)="openExplanation('Percentual de Issues Críticas', 'Este gráfico apresenta a relação percentual entre issues críticas e não críticas para cada versão.')">help_outline</mat-icon>
         </div>
@@ -60,7 +77,7 @@
     <div class="graph-block small">
       <div class="graph-header">
         <div class="graph-title">
-          Variância de Planejamento
+          <span>Variância de Planejamento</span>
           <mat-icon
             (click)="openExplanation('Variância de Planejamento', 'Este gráfico mostra a distribuição das issues entre status concluído e outros para cada versão.')">help_outline</mat-icon>
         </div>

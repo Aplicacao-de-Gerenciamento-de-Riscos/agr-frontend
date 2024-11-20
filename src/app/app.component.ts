@@ -33,6 +33,10 @@ export class AppComponent {
     } else {
       this.sidenav.open(); // On desktop/tablet, the menu can never be fully closed
       this.isCollapsed = !this.isCollapsed;
+      // Força o recalculo do layout após o fechamento do sidenav
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+      }, 0);
     }
   }
 }

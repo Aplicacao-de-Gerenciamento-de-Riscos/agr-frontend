@@ -14,6 +14,9 @@ import { DashboardGraphComponent } from './dashboard/dashboard-graph/dashboard-g
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { ChartExplanationModalComponent } from './chart-explanation-modal/chart-explanation-modal.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 
 @NgModule({
   declarations: [
@@ -32,7 +35,9 @@ import { MatDialogModule } from '@angular/material/dialog';
     MatIconModule,
     NgxChartsModule,
     MatDialogModule,
-    MatIconModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatOptionModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

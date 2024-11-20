@@ -3,46 +3,51 @@
     flex-direction: column;
     gap: 20px;
     padding: 20px;
+    box-sizing: border-box;
+    width: 100%; // Garante que o contêiner ocupe a largura disponível
+    overflow-y: auto; // Permite barra de rolagem vertical
+    overflow-x: hidden; // Remove rolagem horizontal indesejada
+    flex: 1; // Garante que o contêiner ocupe todo o espaço restante
+    height: auto; // Altura dinâmica
+    min-height: 0; // Impede o crescimento inesperado do contêiner
 }
 
 .top-row,
 .bottom-row {
     display: flex;
     gap: 20px;
+    flex-wrap: wrap; // Permite que os itens que não cabem sejam movidos para a próxima linha
 }
 
 .graph-block {
     background: #f9f9f9;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 0px;
     padding: 15px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    /* Alinhar no centro verticalmente */
     align-items: center;
-    /* Alinhar no centro horizontalmente */
-    height: 350px;
-    /* Altura fixa */
-    width: 100%;
-    /* Largura responsiva */
-    box-sizing: border-box;
-}
+    height: 350px; // Altura fixa
+    flex-grow: 1; // Faz os itens ocuparem o espaço restante igualmente
+    flex-basis: 0; // Resolve problemas de largura ao usar gap
+    min-width: 0; // Evita que os elementos fiquem maiores que o contêiner
+    box-sizing: border-box; // Inclui padding e borda no cálculo do tamanho
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden; // Evita que os gráficos ultrapassem o limite dos blocos
 
-.graph-block canvas {
-    width: 80% !important;
-    /* 80% da largura do contêiner */
-    height: 100% !important;
-    /* 100% da altura do contêiner */
+    span {
+        font-size: 16px;
+        font-weight: 450;
+    }
 }
-
 
 .large {
-    flex: 1;
+    flex: 2; // Ocupa duas vezes o espaço de um bloco pequeno
 }
 
 .small {
-    flex: 1;
+    flex: 1; // Ocupa o espaço padrão de um bloco pequeno
 }
 
 .graph-header {
@@ -54,14 +59,12 @@
 .graph-title {
     display: flex;
     justify-content: space-between;
-    /* Espaço uniforme entre título e botão */
     align-items: center;
     font-size: 16px;
     font-weight: bold;
 
     .mat-icon {
         cursor: pointer;
-        /* Altera o cursor ao passar por cima */
     }
 }
 
@@ -72,7 +75,6 @@
     background: #ddd;
     margin: 5px 0 10px 0;
 }
-
 
 ngx-charts-line-chart,
 ngx-charts-bar-vertical-2d,
@@ -87,18 +89,64 @@ ngx-charts-bar-vertical-stacked {
 
 ::ng-deep .ngx-charts .gridline-path {
     stroke: none !important;
-    /* Remove as linhas de grade */
 }
 
 ::ng-deep .axis path,
 ::ng-deep .axis line {
     stroke: #ccc !important;
-    /* Ajusta as linhas dos eixos */
     stroke-width: 0.5px;
-    /* Reduz a espessura */
 }
 
 ::ng-deep .ngx-charts .bar {
     width: 10px !important;
-    /* Define a largura das barras */
+}
+
+.dashboard-header {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    padding-bottom: 0;
+    box-sizing: border-box; // Inclui padding no cálculo da largura
+    width: 100%;
+    overflow-x: hidden; // Remove rolagem horizontal
+    flex-shrink: 0; // Impede que o cabeçalho diminua
+    min-height: auto; // Permite que o cabeçalho ajuste sua altura automaticamente
+}
+
+.header-block {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 0px;
+    padding: 10px;
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: start;
+    box-sizing: border-box;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+
+    span {
+        padding: 5px;
+        font-size: 20px;
+        font-weight: 450;
+    }
+
+    mat-form-field {
+        height: auto;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+}
+
+.header-filters {
+    display: flex;
+    gap: 20px;
+    padding-right: 10px;
+    flex-wrap: wrap; // Permite que os itens se ajustem à largura disponível
+    align-items: center;
+    justify-content: flex-end;
 }
