@@ -119,11 +119,10 @@ ngx-charts-bar-vertical-stacked {
     border: 1px solid #ddd;
     border-radius: 0px;
     padding: 10px;
-    padding-bottom: 0;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items: start;
+    align-items: center;
     box-sizing: border-box;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
     overflow: hidden;
@@ -140,6 +139,15 @@ ngx-charts-bar-vertical-stacked {
         display: flex;
         align-items: center;
     }
+
+}
+
+::ng-deep .mat-form-field-wrapper {
+    padding: 0;
+}
+
+::ng-deep .mat-form-field-underline {
+    display: none;
 }
 
 .header-filters {
