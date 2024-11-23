@@ -1,14 +1,14 @@
 <div class="dashboard-header">
   <div class="header-block">
     <div class="header-title">
-      <span>Gráficos de Gerenciamento de Riscos</span>
+      <span>Dashboard Visualização de Riscos</span>
     </div>
     <div class="header-filters">
       <mat-form-field appearance="fill">
         <mat-label>Selecionar Projeto</mat-label>
         <mat-select [(value)]="selectedProject" (selectionChange)="onProjectChange($event)">
           <mat-option value="all">Todos</mat-option>
-          <mat-option *ngFor="let project of projects" [value]="project">{{ project }}</mat-option>
+          <mat-option *ngFor="let project of projects" [value]="project">{{ project.key }}</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
@@ -22,9 +22,9 @@
     <div class="graph-block large">
       <div class="graph-header">
         <div class="graph-title">
-          <span>Previsão de Risco de Atraso por Versão</span>
+          <span>Riscos de atrasos por versões de projetos</span>
           <mat-icon
-            (click)="openExplanation('Risco de Atraso por Versão', 'Este gráfico mostra o percentual de risco de atraso para cada versão do projeto.')">help_outline</mat-icon>
+            (click)="openExplanation('Riscos de atrasos por versões de projetos', 'Este gráfico mostra o percentual de risco de atraso para cada versão do projeto.')">help_outline</mat-icon>
         </div>
         <hr class="divider" />
       </div>
@@ -35,9 +35,9 @@
     <div class="graph-block large">
       <div class="graph-header">
         <div class="graph-title">
-          <span>Percentual de Entrega por Tipo de Issue</span>
+          <span>Entregas por tido de atividades</span>
           <mat-icon
-            (click)="openExplanation('Percentual de Entrega por Tipo de Issue', 'Este gráfico exibe a porcentagem de entrega de issues agrupadas por tipo de issue.')">help_outline</mat-icon>
+            (click)="openExplanation('Entregas por tido de atividades', 'Este gráfico exibe a porcentagem de entrega de issues agrupadas por tipo de issue.')">help_outline</mat-icon>
         </div>
         <hr class="divider" />
       </div>
@@ -51,9 +51,9 @@
     <div class="graph-block small">
       <div class="graph-header">
         <div class="graph-title">
-          <span>Porcentagem de Bugs por Versão</span>
+          <span>Bugs por versões de projetos</span>
           <mat-icon
-            (click)="openExplanation('Porcentagem de Bugs por Versão', 'Este gráfico apresenta a porcentagem de bugs detectados em cada versão.')">help_outline</mat-icon>
+            (click)="openExplanation('Bugs por versões de projetos', 'Este gráfico apresenta a porcentagem de bugs detectados em cada versão.')">help_outline</mat-icon>
         </div>
         <hr class="divider" />
       </div>
@@ -64,9 +64,9 @@
     <div class="graph-block small">
       <div class="graph-header">
         <div class="graph-title">
-          <span>Percentual de Issues Críticas</span>
+          <span>Atividades críticas por versões de projetos</span>
           <mat-icon
-            (click)="openExplanation('Percentual de Issues Críticas', 'Este gráfico apresenta a relação percentual entre issues críticas e não críticas para cada versão.')">help_outline</mat-icon>
+            (click)="openExplanation('Atividades críticas por versões de projetos', 'Este gráfico apresenta a relação percentual entre issues críticas e não críticas para cada versão.')">help_outline</mat-icon>
         </div>
         <hr class="divider" />
       </div>

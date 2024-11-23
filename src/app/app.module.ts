@@ -10,19 +10,18 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { DashboardGraphComponent } from './dashboard/dashboard-graph/dashboard-graph.component';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { ChartExplanationModalComponent } from './chart-explanation-modal/chart-explanation-modal.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
     AppComponent,
     DashboardComponent,
-    DashboardGraphComponent,
     ChartExplanationModalComponent,
   ],
   imports: [
@@ -38,6 +37,7 @@ import { MatOptionModule } from '@angular/material/core';
     MatFormFieldModule,
     MatSelectModule,
     MatOptionModule,
+    HttpClientModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

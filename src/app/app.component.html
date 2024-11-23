@@ -1,21 +1,10 @@
-<mat-toolbar color="primary">
-  <div class="header-content">
-    <div class="header-menu">
-      <button mat-icon-button aria-label="Menu icon" (click)="toggleMenu()">
-        <mat-icon class="menu-icon">menu</mat-icon>
-      </button>
-      <h1>Gerenciador de Riscos de Projetos</h1>
-    </div>
-    <div class="header-logo">
+<mat-sidenav-container autosize class="sidenav">
+  <mat-sidenav [ngClass]="!isCollapsed ? 'expanded' : ''" [mode]="isMobile ? 'over' : 'side'" [opened]="isMobile ? 'false' : 'true'" class="custom-sidenav" (click)="onContainerClick($event)">
+    <div class="sidebar-logo">
       <img src="assets/images/weg-logo.png" alt="Logo" />
     </div>
-  </div>
-</mat-toolbar>
-
-<mat-sidenav-container autosize>
-  <mat-sidenav [ngClass]="!isCollapsed ? 'expanded' : ''" [mode]="isMobile ? 'over' : 'side'" [opened]="isMobile ? 'false' : 'true'">
     <mat-nav-list>
-      <a mat-list-item>
+      <a mat-list-item (click)="navigateToDashboard($event)">
         <span class="entry">
           <mat-icon class="dashboard-icon">dashboard</mat-icon>
           <span *ngIf="!isCollapsed">Dashboard</span>

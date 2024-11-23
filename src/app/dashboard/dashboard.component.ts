@@ -2,6 +2,10 @@ import { Component, OnInit, AfterViewInit, ElementRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Area, Bar, Column, Line, Pie } from '@antv/g2plot';
 import { ChartExplanationModalComponent } from '../chart-explanation-modal/chart-explanation-modal.component';
+import { environment } from 'src/environments/environment';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { switchMap, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -9,13 +13,24 @@ import { ChartExplanationModalComponent } from '../chart-explanation-modal/chart
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
-  constructor(private dialog: MatDialog, private elementRef: ElementRef) { }
+  constructor(private http: HttpClient, private dialog: MatDialog, private elementRef: ElementRef) { }
 
   private charts: any[] = []; // Armazena as instâncias dos gráficos criados
 
   // Lista de projetos
-  projects: string[] = ['MFM', 'TFM', 'WSM'];
+  projects: {
+    id: number;
+    key: string;
+    boardId: number;
+  }[] = [];
+
   selectedProject: string = 'all'; // Projeto selecionado, por padrão "Todos"
+
+  // Lista de versões
+  versions: {
+    id: number;
+    name: string;
+  }[] = [];
 
   // Dados originais dos gráficos (mock com projetos e versões)
   originalRiskPredictionData = [
@@ -167,16 +182,70 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   criticalIssuesChartData = [...this.originalCriticalIssuesChartData];
   planningVarianceData = [...this.originalPlanningVarianceData];
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    this.fetchProjects()
+      .pipe(
+        switchMap((projects) => {
+          // Atualiza a lista de projetos
+          this.projects = projects;
+          // Buscar todas as versões ao entrar na tela
+          const allProjectIds = this.projects.map(project => project.id).join(',');
+          return this.fetchVersions(allProjectIds);
+        })
+      )
+      .subscribe(() => {
+        // Carregar os dados e renderizar gráficos após a conclusão das chamadas HTTP
+        this.loadAllData();
+        this.renderCharts();
+      });
+  }
+
+  fetchProjects(): Observable<any[]> {
+    const url = `${environment.apiUrl}/v1/project/all`;
+    return this.http.get<any[]>(url).pipe(
+      tap((projects) => {
+        this.projects = projects.map((project) => ({
+          key: project.key,
+          id: project.id,
+          boardId: project.boardId,
+        }));
+      })
+    );
+  }
+
+  // Requisição para buscar as versões na API
+  fetchVersions(projectIds: string): Observable<any> {
+    const url = `${environment.apiUrl}/v1/version/all?projectId=${projectIds}`;
+    return this.http.get<any[]>(url).pipe(
+      tap((versions) => {
+        // Atualiza a lista de versões
+        this.versions = versions.map(version => ({
+          id: version.id,
+          name: version.name,
+        }));
+      })
+    );
+  }
 
   onProjectChange(event: any): void {
     const selected = event.value;
     if (selected === 'all') {
-      this.loadAllData();
+      const allProjectIds = this.projects.map(project => project.id).join(',');
+      this.fetchVersions(allProjectIds).subscribe(() => {
+        this.loadAllData();
+        this.renderCharts();
+      });
     } else {
-      this.loadProjectData(selected);
+      const selectedProjectIds = this.projects
+        .filter(project => selected.id === project.id)
+        .map(project => project.id)
+        .join(',');
+
+      this.fetchVersions(selectedProjectIds).subscribe(() => {
+        this.loadProjectData(selected.key);
+        this.renderCharts();
+      });
     }
-    this.renderCharts(); // Re-renderiza os gráficos com os dados atualizados
   }
 
   loadAllData(): void {
@@ -204,11 +273,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.renderCharts();
+    // this.renderCharts();
   }
 
   renderCharts(): void {
-    console.log('graph data', this.riskPredictionData, this.deliveryChartData, this.bugPercentageData, this.criticalIssuesChartData, this.planningVarianceData);
     const chartHeight = 280; // Altura fixa do contêiner
 
     // Função para calcular a largura do gráfico com base no elemento pai

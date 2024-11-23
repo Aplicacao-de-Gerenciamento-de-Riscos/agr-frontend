@@ -21,8 +21,7 @@
 
 .graph-block {
     background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 0px;
+    border-radius: 5px;
     padding: 15px;
     display: flex;
     flex-direction: column;
@@ -33,7 +32,7 @@
     flex-basis: 0; // Resolve problemas de largura ao usar gap
     min-width: 0; // Evita que os elementos fiquem maiores que o contêiner
     box-sizing: border-box; // Inclui padding e borda no cálculo do tamanho
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     overflow: hidden; // Evita que os gráficos ultrapassem o limite dos blocos
 
     span {
@@ -116,15 +115,14 @@ ngx-charts-bar-vertical-stacked {
 
 .header-block {
     background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 0px;
+    border-radius: 5px;
     padding: 10px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     box-sizing: border-box;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 
     span {

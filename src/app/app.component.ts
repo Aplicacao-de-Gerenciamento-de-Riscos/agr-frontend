@@ -1,6 +1,7 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component, ViewChild } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,7 @@ export class AppComponent {
   isMobile= true;
   isCollapsed = true;
 
-  constructor(private observer: BreakpointObserver) {}
+  constructor(private observer: BreakpointObserver, private router: Router) {}
 
   ngOnInit() {
     this.observer.observe(['(max-width: 800px)']).subscribe((screenSize) => {
@@ -26,6 +27,23 @@ export class AppComponent {
     });
   }
 
+  // Método chamado ao clicar fora do botão "Dashboard"
+  onContainerClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+
+    // Verifica se o clique foi fora do botão "Dashboard"
+    if (!target.closest('a.mat-list-item')) {
+      this.toggleMenu();
+    }
+  }
+
+  // Método para navegação quando o botão "Dashboard" é clicado
+  navigateToDashboard(event: MouseEvent): void {
+    event.stopPropagation(); // Impede o clique de disparar o evento no contêiner
+    this.router.navigate(['/dashboard']); // Navega para a página de dashboard
+  }
+
+  // Método para alternar o estado da sidebar
   toggleMenu() {
     if(this.isMobile){
       this.sidenav.toggle();
