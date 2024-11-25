@@ -24,7 +24,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     boardId: number;
   }[] = [];
 
-  selectedProject: string = 'all'; // Projeto selecionado, por padrão "Todos"
+  selectedProject: any = {
+    id: 0,
+    key: 'Projeto',
+    boardId: 0,
+  } // Projeto selecionado, por padrão "Todos"
 
   // Lista de versões
   versions: {
@@ -34,145 +38,25 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   // Dados originais dos gráficos (mock com projetos e versões)
   originalRiskPredictionData = [
-    { project: 'MFM', version: 'MFM - V1.0', risk: 70 },
-    { project: 'MFM', version: 'MFM - V2.0', risk: 65 },
-    { project: 'MFM', version: 'MFM - V3.0', risk: 75 },
-    { project: 'MFM', version: 'MFM - V4.0', risk: 80 },
-    { project: 'MFM', version: 'MFM - V5.0', risk: 85 },
-    { project: 'MFM', version: 'MFM - V6.0', risk: 60 },
-    { project: 'MFM', version: 'MFM - V7.0', risk: 50 },
-    { project: 'MFM', version: 'MFM - V8.0', risk: 55 },
-
-    { project: 'TFM', version: 'TFM - V1.0', risk: 60 },
-    { project: 'TFM', version: 'TFM - V2.0', risk: 65 },
-    { project: 'TFM', version: 'TFM - V3.0', risk: 70 },
-    { project: 'TFM', version: 'TFM - V4.0', risk: 75 },
-    { project: 'TFM', version: 'TFM - V5.0', risk: 80 },
-    { project: 'TFM', version: 'TFM - V6.0', risk: 85 },
-    { project: 'TFM', version: 'TFM - V7.0', risk: 50 },
-    { project: 'TFM', version: 'TFM - V8.0', risk: 55 },
-
-    { project: 'WSM', version: 'WSM - V1.0', risk: 50 },
-    { project: 'WSM', version: 'WSM - V2.0', risk: 45 },
-    { project: 'WSM', version: 'WSM - V3.0', risk: 55 },
-    { project: 'WSM', version: 'WSM - V4.0', risk: 60 },
-    { project: 'WSM', version: 'WSM - V5.0', risk: 65 },
-    { project: 'WSM', version: 'WSM - V6.0', risk: 70 },
-    { project: 'WSM', version: 'WSM - V7.0', risk: 75 },
-    { project: 'WSM', version: 'WSM - V8.0', risk: 80 },
+    { project: 'Projeto', version: 'Versão', risk: 0 }
   ];
 
   originalDeliveryChartData = [
-    { project: 'MFM', version: 'MFM - V1.0', type: 'New Feature', value: 25 },
-    { project: 'MFM', version: 'MFM - V1.0', type: 'Bug', value: 30 },
-    { project: 'MFM', version: 'MFM - V2.0', type: 'New Feature', value: 20 },
-    { project: 'MFM', version: 'MFM - V2.0', type: 'Bug', value: 25 },
-    { project: 'MFM', version: 'MFM - V3.0', type: 'New Feature', value: 15 },
-    { project: 'MFM', version: 'MFM - V3.0', type: 'Bug', value: 20 },
-    // Mais versões para MFM...
-    { project: 'MFM', version: 'MFM - V8.0', type: 'New Feature', value: 30 },
-    { project: 'MFM', version: 'MFM - V8.0', type: 'Bug', value: 25 },
-
-    { project: 'TFM', version: 'TFM - V1.0', type: 'New Feature', value: 25 },
-    { project: 'TFM', version: 'TFM - V1.0', type: 'Bug', value: 35 },
-    { project: 'TFM', version: 'TFM - V2.0', type: 'New Feature', value: 20 },
-    { project: 'TFM', version: 'TFM - V2.0', type: 'Bug', value: 30 },
-    // Mais versões para TFM...
-    { project: 'TFM', version: 'TFM - V8.0', type: 'New Feature', value: 40 },
-    { project: 'TFM', version: 'TFM - V8.0', type: 'Bug', value: 35 },
-
-    { project: 'WSM', version: 'WSM - V1.0', type: 'New Feature', value: 15 },
-    { project: 'WSM', version: 'WSM - V1.0', type: 'Bug', value: 20 },
-    { project: 'WSM', version: 'WSM - V2.0', type: 'New Feature', value: 10 },
-    { project: 'WSM', version: 'WSM - V2.0', type: 'Bug', value: 25 },
-    // Mais versões para WSM...
-    { project: 'WSM', version: 'WSM - V8.0', type: 'New Feature', value: 35 },
-    { project: 'WSM', version: 'WSM - V8.0', type: 'Bug', value: 40 },
+    { project: 'Projeto', version: 'Versão', type: 'Tipo', value: 0 }
   ];
 
   originalBugPercentageData = [
-    { project: 'MFM', version: 'MFM - V1.0', percentage: 20 },
-    { project: 'MFM', version: 'MFM - V2.0', percentage: 15 },
-    { project: 'MFM', version: 'MFM - V3.0', percentage: 25 },
-    { project: 'MFM', version: 'MFM - V4.0', percentage: 30 },
-    { project: 'MFM', version: 'MFM - V5.0', percentage: 35 },
-    { project: 'MFM', version: 'MFM - V6.0', percentage: 40 },
-    { project: 'MFM', version: 'MFM - V7.0', percentage: 50 },
-    { project: 'MFM', version: 'MFM - V8.0', percentage: 55 },
-
-    { project: 'TFM', version: 'TFM - V1.0', percentage: 25 },
-    { project: 'TFM', version: 'TFM - V2.0', percentage: 30 },
-    { project: 'TFM', version: 'TFM - V3.0', percentage: 35 },
-    { project: 'TFM', version: 'TFM - V4.0', percentage: 40 },
-    { project: 'TFM', version: 'TFM - V5.0', percentage: 45 },
-    { project: 'TFM', version: 'TFM - V6.0', percentage: 50 },
-    { project: 'TFM', version: 'TFM - V7.0', percentage: 55 },
-    { project: 'TFM', version: 'TFM - V8.0', percentage: 60 },
-
-    { project: 'WSM', version: 'WSM - V1.0', percentage: 15 },
-    { project: 'WSM', version: 'WSM - V2.0', percentage: 20 },
-    { project: 'WSM', version: 'WSM - V3.0', percentage: 25 },
-    { project: 'WSM', version: 'WSM - V4.0', percentage: 30 },
-    { project: 'WSM', version: 'WSM - V5.0', percentage: 35 },
-    { project: 'WSM', version: 'WSM - V6.0', percentage: 40 },
-    { project: 'WSM', version: 'WSM - V7.0', percentage: 45 },
-    { project: 'WSM', version: 'WSM - V8.0', percentage: 50 },
+    { project: 'Projeto', version: 'Versão', percentage: 20 }
   ];
 
   originalCriticalIssuesChartData = [
-    { project: 'MFM', version: 'MFM - V1.0', type: 'Critical', percentage: 10 },
-    { project: 'MFM', version: 'MFM - V1.0', type: 'Non-Critical', percentage: 15 },
-    { project: 'MFM', version: 'MFM - V2.0', type: 'Critical', percentage: 15 },
-    { project: 'MFM', version: 'MFM - V2.0', type: 'Non-Critical', percentage: 20 },
-    { project: 'MFM', version: 'MFM - V3.0', type: 'Critical', percentage: 20 },
-    { project: 'MFM', version: 'MFM - V3.0', type: 'Non-Critical', percentage: 25 },
-    // Mais versões para MFM...
-    { project: 'MFM', version: 'MFM - V8.0', type: 'Critical', percentage: 25 },
-    { project: 'MFM', version: 'MFM - V8.0', type: 'Non-Critical', percentage: 30 },
-
-    { project: 'TFM', version: 'TFM - V1.0', type: 'Critical', percentage: 10 },
-    { project: 'TFM', version: 'TFM - V1.0', type: 'Non-Critical', percentage: 20 },
-    { project: 'TFM', version: 'TFM - V2.0', type: 'Critical', percentage: 20 },
-    { project: 'TFM', version: 'TFM - V2.0', type: 'Non-Critical', percentage: 25 },
-    // Mais versões para TFM...
-    { project: 'TFM', version: 'TFM - V8.0', type: 'Critical', percentage: 30 },
-    { project: 'TFM', version: 'TFM - V8.0', type: 'Non-Critical', percentage: 35 },
-
-    { project: 'WSM', version: 'WSM - V1.0', type: 'Critical', percentage: 5 },
-    { project: 'WSM', version: 'WSM - V1.0', type: 'Non-Critical', percentage: 10 },
-    { project: 'WSM', version: 'WSM - V2.0', type: 'Critical', percentage: 10 },
-    { project: 'WSM', version: 'WSM - V2.0', type: 'Non-Critical', percentage: 15 },
-    // Mais versões para WSM...
-    { project: 'WSM', version: 'WSM - V8.0', type: 'Critical', percentage: 30 },
-    { project: 'WSM', version: 'WSM - V8.0', type: 'Non-Critical', percentage: 35 },
+    { project: 'Projeto', version: 'Versão', type: 'Crítico', percentage: 0 },
+    { project: 'Projeto', version: 'Versão', type: 'Não Crítico', percentage: 0 }
   ];
 
   originalPlanningVarianceData = [
-    { project: 'MFM', version: 'MFM - V1.0', status: 'Planned', value: 10 },
-    { project: 'MFM', version: 'MFM - V1.0', status: 'Actual', value: 15 },
-    { project: 'MFM', version: 'MFM - V2.0', status: 'Planned', value: 15 },
-    { project: 'MFM', version: 'MFM - V2.0', status: 'Actual', value: 20 },
-    { project: 'MFM', version: 'MFM - V3.0', status: 'Planned', value: 20 },
-    { project: 'MFM', version: 'MFM - V3.0', status: 'Actual', value: 25 },
-    // Mais versões para MFM...
-    { project: 'MFM', version: 'MFM - V8.0', status: 'Planned', value: 25 },
-    { project: 'MFM', version: 'MFM - V8.0', status: 'Actual', value: 30 },
-
-    { project: 'TFM', version: 'TFM - V1.0', status: 'Planned', value: 10 },
-    { project: 'TFM', version: 'TFM - V1.0', status: 'Actual', value: 20 },
-    { project: 'TFM', version: 'TFM - V2.0', status: 'Planned', value: 20 },
-    { project: 'TFM', version: 'TFM - V2.0', status: 'Actual', value: 25 },
-    // Mais versões para TFM...
-    { project: 'TFM', version: 'TFM - V8.0', status: 'Planned', value: 30 },
-    { project: 'TFM', version: 'TFM - V8.0', status: 'Actual', value: 35 },
-
-    { project: 'WSM', version: 'WSM - V1.0', status: 'Planned', value: 5 },
-    { project: 'WSM', version: 'WSM - V1.0', status: 'Actual', value: 10 },
-    { project: 'WSM', version: 'WSM - V2.0', status: 'Planned', value: 10 },
-    { project: 'WSM', version: 'WSM - V2.0', status: 'Actual', value: 15 },
-    // Mais versões para WSM...
-    { project: 'WSM', version: 'WSM - V8.0', status: 'Planned', value: 30 },
-    { project: 'WSM', version: 'WSM - V8.0', status: 'Actual', value: 35 },
+    { project: 'Projeto', version: 'Versão', status: 'Done', value: 0 },
+    { project: 'Projeto', version: 'Versão', status: 'Outro Status', value: 0 },
   ];
 
   // Dados filtrados usados pelos gráficos
@@ -185,20 +69,34 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.fetchProjects()
       .pipe(
-        switchMap((projects) => {
-          // Atualiza a lista de projetos
-          this.projects = projects;
-          // Buscar todas as versões ao entrar na tela
-          const allProjectIds = this.projects.map(project => project.id).join(',');
-          return this.fetchVersions(allProjectIds);
+        tap((projects) => {
+          if (projects.length > 0) {
+            this.projects = projects;
+            this.selectedProject = projects[0]; // Define o primeiro projeto como padrão
+          }
+        }),
+        switchMap(() => {
+          if (this.selectedProject) {
+            return this.fetchVersions(this.selectedProject.id.toString());
+          } else {
+            return [];
+          }
+        }),
+        switchMap(() => {
+          const versionIds = this.versions.map((version) => version.id).join(',');
+          return this.fetchDeliveryMetrics(versionIds).pipe(
+            switchMap(() => this.fetchWorkPlanningVarianceMetrics(versionIds)),
+            switchMap(() => this.fetchCriticalIssuesMetrics(versionIds)),
+            switchMap(() => this.fetchBugIssuesMetrics(versionIds)),
+            switchMap(() => this.fetchRiskPredictionMetrics(versionIds))
+          );
         })
       )
       .subscribe(() => {
-        // Carregar os dados e renderizar gráficos após a conclusão das chamadas HTTP
-        this.loadAllData();
+        this.loadProjectData(this.selectedProject.key);
         this.renderCharts();
       });
-  }
+  }  
 
   fetchProjects(): Observable<any[]> {
     const url = `${environment.apiUrl}/v1/project/all`;
@@ -227,25 +125,176 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     );
   }
 
-  onProjectChange(event: any): void {
-    const selected = event.value;
-    if (selected === 'all') {
-      const allProjectIds = this.projects.map(project => project.id).join(',');
-      this.fetchVersions(allProjectIds).subscribe(() => {
-        this.loadAllData();
-        this.renderCharts();
-      });
-    } else {
-      const selectedProjectIds = this.projects
-        .filter(project => selected.id === project.id)
-        .map(project => project.id)
-        .join(',');
+  fetchDeliveryMetrics(versionIds: string): Observable<any[]> {
+    const url = `${environment.apiUrl}/v1/metrics/delivery-percentage?versionIds=${versionIds}`;
+    return this.http.get<any[]>(url).pipe(
+      tap((response) => {
+        // Mapeia e transforma os dados sem usar flatMap
+        const formattedData = response
+          .map((item) => {
+            return item.delieveryPercentagePerIssueType.map((metric: { issueType: any; donePercentage: any; }) => ({
+              project: this.projects.find(project => project.id === item.version.project?.id)?.key || 'Projeto Desconhecido',
+              version: item.version.name,
+              type: metric.issueType,
+              value: metric.donePercentage,
+            }));
+          })
+          .reduce((acc, curr) => acc.concat(curr), []); // Junta os arrays resultantes
 
-      this.fetchVersions(selectedProjectIds).subscribe(() => {
-        this.loadProjectData(selected.key);
-        this.renderCharts();
+        // Atualiza os dados originais
+        this.originalDeliveryChartData = formattedData;
+
+        // Atualiza os dados filtrados
+        this.deliveryChartData = [...this.originalDeliveryChartData];
+      })
+    );
+  }
+
+  fetchWorkPlanningVarianceMetrics(versionIds: string): Observable<any[]> {
+    const url = `${environment.apiUrl}/v1/metrics/work-planning-variance?versionIds=${versionIds}`;
+    return this.http.get<any[]>(url).pipe(
+      tap((response) => {
+        // Mapeia os dados retornados para o formato necessário
+        const formattedData = response.map((item) => {
+          const totalIssues = item.issuePlanning?.totalIssues || 0;
+          const doneIssues = item.issuePlanning?.totalDoneIssues || 0;
+          const otherIssues = item.issuePlanning?.totalOtherStatusIssues || 0;
+
+          return [
+            {
+              project: item.version.project?.key || 'Projeto Desconhecido',
+              version: item.version.name,
+              status: 'Planejado',
+              value: totalIssues,
+            },
+            {
+              project: item.version.project?.key || 'Projeto Desconhecido',
+              version: item.version.name,
+              status: 'Done',
+              value: doneIssues
+            },
+            {
+              project: item.version.project?.key || 'Projeto Desconhecido',
+              version: item.version.name,
+              status: 'Outro Status',
+              value: otherIssues
+            },
+          ];
+        }).reduce((acc, curr) => acc.concat(curr), []); // Junta os arrays
+
+        // Atualiza os dados originais
+        this.originalPlanningVarianceData = formattedData;
+
+        // Atualiza os dados filtrados
+        this.planningVarianceData = [...this.originalPlanningVarianceData];
+      })
+    );
+  }
+
+  fetchCriticalIssuesMetrics(versionIds: string): Observable<any[]> {
+    const url = `${environment.apiUrl}/v1/metrics/critical-issues-relation?versionIds=${versionIds}`;
+    return this.http.get<any[]>(url).pipe(
+      tap((response) => {
+        // Mapeia os dados retornados para o formato necessário
+        const formattedData = response
+          .map((item) => {
+            const versionName = item.version.name;
+            const projectKey = item.version.project?.key || 'Projeto Desconhecido';
+
+            return item.criticalIssueRelation.map((relation: any) => [
+              {
+                project: projectKey,
+                version: versionName,
+                type: 'Crítico',
+                percentage: relation.criticalIssuesPercentage,
+              },
+              {
+                project: projectKey,
+                version: versionName,
+                type: 'Não Crítico',
+                percentage: relation.nonCriticalIssuesPercentage,
+              },
+            ]);
+          })
+          .reduce((acc, curr) => acc.concat(curr), []) // Achata os arrays em um único array
+          .reduce((acc: string | any[], curr: any) => acc.concat(curr), []); // Achata os arrays em um único array
+
+        // Atualiza os dados originais
+        this.originalCriticalIssuesChartData = formattedData;
+
+        // Atualiza os dados filtrados
+        this.criticalIssuesChartData = [...this.originalCriticalIssuesChartData];
+      })
+    );
+  }
+
+  onProjectChange(event: any): void {
+    const selectedProject = event.value;
+  
+    if (selectedProject) {
+      const selectedProjectId = selectedProject.id.toString();
+  
+      this.fetchVersions(selectedProjectId).subscribe(() => {
+        const versionIds = this.versions.map((version) => version.id).join(',');
+        this.fetchDeliveryMetrics(versionIds).subscribe(() => {
+          this.fetchWorkPlanningVarianceMetrics(versionIds).subscribe(() => {
+            this.fetchCriticalIssuesMetrics(versionIds).subscribe(() => {
+              this.fetchBugIssuesMetrics(versionIds).subscribe(() => {
+                this.fetchRiskPredictionMetrics(versionIds).subscribe(() => {
+                  this.loadProjectData(selectedProject.key);
+                  this.renderCharts();
+                });
+              });
+            });
+          });
+        });
       });
     }
+  }  
+
+  fetchBugIssuesMetrics(versionIds: string): Observable<any[]> {
+    const url = `${environment.apiUrl}/v1/metrics/bug-issues-relation?versionIds=${versionIds}`;
+    return this.http.get<any[]>(url).pipe(
+      tap((response) => {
+        // Mapeia os dados retornados para o formato necessário
+        const formattedData = response
+          .map((item) => {
+            const versionName = item.version.name;
+            const projectKey = item.version.project?.key || 'Projeto Desconhecido';
+
+            return item.bugIssuesRelation.map((relation: any) => ({
+              project: projectKey,
+              version: versionName,
+              percentage: relation.bugIssuesPercentage,
+            }));
+          })
+          .reduce((acc, curr) => acc.concat(curr), []) // Junta os arrays resultantes
+          .reduce((acc: string | any[], curr: any) => acc.concat(curr), []); // Achata os arrays em um único array
+
+        // Atualiza os dados originais
+        this.originalBugPercentageData = formattedData;
+
+        // Atualiza os dados filtrados
+        this.bugPercentageData = [...this.originalBugPercentageData];
+      })
+    );
+  }
+
+  fetchRiskPredictionMetrics(versionIds: string): Observable<any[]> {
+    const url = `${environment.apiUrl}/v1/metrics/predict-delay?versionIds=${versionIds}`;
+    return this.http.get<any[]>(url).pipe(
+      tap((response) => {
+        const formattedData = response.map((item) => ({
+          project: item.version.project?.key || 'Projeto Desconhecido',
+          version: item.version.name,
+          risk: item.delayRiskPercentage,
+        }));
+
+        // Atualiza os dados originais e filtrados
+        this.originalRiskPredictionData = formattedData;
+        this.riskPredictionData = [...this.originalRiskPredictionData];
+      })
+    );
   }
 
   loadAllData(): void {
@@ -326,7 +375,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           }),
         },
         legend: {
-          position: 'top', // Posiciona a legenda no topo
+          position: 'bottom', // Posiciona a legenda abaixo
           layout: 'horizontal',
         },
         color: ['#882255', '#DDCC77', '#e69f00', '#d55e00', '#44AA99', '#009e74', '#117733'], // Paleta de cores
@@ -362,11 +411,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           layout: 'horizontal',
         },
         color: ['#cc79a7', '#AA4499', '#CC6677', '#882255'], // Paleta de cores atualizada
-        label: {
-          position: 'middle', // Mostra os rótulos dentro das barras
-          formatter: (datum: any) => `${datum.value}%`, // Mostra o valor percentual
-          style: { fill: '#fff', fontSize: 12 }, // Ajusta estilo do rótulo
-        },
+        // label: {
+        //   position: 'middle', // Mostra os rótulos dentro das barras
+        //   formatter: (datum: any) => `${datum.value}%`, // Mostra o valor percentual
+        //   style: { fill: '#fff', fontSize: 12 }, // Ajusta estilo do rótulo
+        // },
         interactions: [{ type: 'element-selected' }, { type: 'element-active' }], // Adiciona interatividade ao gráfico
       },
     });
@@ -444,7 +493,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         xAxis: { grid: null },
         yAxis: { grid: null },
         legend: { position: 'bottom', layout: 'horizontal' },
-        color: ['#44AA99', '#0072b2'],
+        color: ['#44AA99', '#0072b2', '#56b3e9'],
         interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
       },
     });

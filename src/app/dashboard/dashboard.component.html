@@ -7,9 +7,10 @@
       <mat-form-field appearance="fill">
         <mat-label>Selecionar Projeto</mat-label>
         <mat-select [(value)]="selectedProject" (selectionChange)="onProjectChange($event)">
-          <mat-option value="all">Todos</mat-option>
-          <mat-option *ngFor="let project of projects" [value]="project">{{ project.key }}</mat-option>
-        </mat-select>
+          <mat-option *ngFor="let project of projects" [value]="project">
+            {{ project.key }}
+          </mat-option>
+        </mat-select>        
       </mat-form-field>
     </div>
   </div>
@@ -35,7 +36,7 @@
     <div class="graph-block large">
       <div class="graph-header">
         <div class="graph-title">
-          <span>Entregas por tido de atividades</span>
+          <span>Entregas por tipo de atividades</span>
           <mat-icon
             (click)="openExplanation('Entregas por tido de atividades', 'Este gráfico exibe a porcentagem de entrega de issues agrupadas por tipo de issue.')">help_outline</mat-icon>
         </div>
