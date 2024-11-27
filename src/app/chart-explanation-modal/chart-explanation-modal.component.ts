@@ -18,6 +18,7 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
       mat-dialog-content {
         font-size: 14px;
         margin-top: 16px;
+        max-width: 400px;
       }
       mat-dialog-title {
         font-size: 18px;

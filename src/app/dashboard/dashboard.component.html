@@ -10,7 +10,7 @@
           <mat-option *ngFor="let project of projects" [value]="project">
             {{ project.key }}
           </mat-option>
-        </mat-select>        
+        </mat-select>
       </mat-form-field>
     </div>
   </div>
@@ -19,72 +19,105 @@
 <div class="dashboard-container">
   <!-- Linha superior -->
   <div class="top-row">
-    <!-- Gráfico 1 -->
+    <!-- Gráfico 1: Riscos de atrasos por versões -->
     <div class="graph-block large">
       <div class="graph-header">
         <div class="graph-title">
           <span>Riscos de atrasos por versões de projetos</span>
           <mat-icon
-            (click)="openExplanation('Riscos de atrasos por versões de projetos', 'Este gráfico mostra o percentual de risco de atraso para cada versão do projeto.')">help_outline</mat-icon>
+            (click)="openExplanation('Riscos de atrasos por versões de projetos', 'Calcula o percentual de atraso que determinada versão do software possui, com base a critérios de épicos, prioridades, horas gastas a mais que o estimado e tipo de atividades. Assim, permite identificar semelhanças para mitigar riscos de próximas versões com as mesmas características.')">help_outline</mat-icon>
         </div>
         <hr class="divider" />
       </div>
-      <div id="risk-prediction-chart"></div>
+      <div id="risk-prediction-chart" [class.hidden]="!(riskPredictionData && riskPredictionData.length > 0)"></div>
+      <div class="no-data-message" *ngIf="!(riskPredictionData && riskPredictionData.length > 0)">
+        Não há dados disponíveis
+      </div>
     </div>
 
-    <!-- Gráfico 2 -->
+    <!-- Gráfico 2: Uso de Épicos -->
     <div class="graph-block large">
       <div class="graph-header">
         <div class="graph-title">
-          <span>Entregas por tipo de atividades</span>
+          <span>Uso de épicos por versão</span>
           <mat-icon
-            (click)="openExplanation('Entregas por tido de atividades', 'Este gráfico exibe a porcentagem de entrega de issues agrupadas por tipo de issue.')">help_outline</mat-icon>
+            (click)="openExplanation('Uso de Épicos por Versão', 'Visualização dos 5 épicos (funcionalidades) mais utilizados em horas durante o desenvolvimento de uma versão.')">help_outline</mat-icon>
         </div>
         <hr class="divider" />
       </div>
-      <div id="delivery-chart"></div>
+      <div id="epic-usage-chart" [class.hidden]="!(epicUsageData && epicUsageData.length > 0)"></div>
+      <div class="no-data-message" *ngIf="!(epicUsageData && epicUsageData.length > 0)">
+        Não há dados disponíveis
+      </div>
     </div>
   </div>
 
   <!-- Linha inferior -->
   <div class="bottom-row">
-    <!-- Gráfico 3 -->
+    <!-- Gráfico 3: Bugs por versões -->
     <div class="graph-block small">
       <div class="graph-header">
         <div class="graph-title">
           <span>Bugs por versões de projetos</span>
           <mat-icon
-            (click)="openExplanation('Bugs por versões de projetos', 'Este gráfico apresenta a porcentagem de bugs detectados em cada versão.')">help_outline</mat-icon>
+            (click)="openExplanation('Bugs por versões de projetos', 'Calcula o percentual de bugs presentes em uma determina versão, relacionando a quantidade de correções necessárias para o desenvolvimento/entrega.')">help_outline</mat-icon>
         </div>
         <hr class="divider" />
       </div>
-      <div id="bug-percentage-chart"></div>
+      <div id="bug-percentage-chart" [class.hidden]="!(bugPercentageData && bugPercentageData.length > 0)"></div>
+      <div class="no-data-message" *ngIf="!(bugPercentageData && bugPercentageData.length > 0)">
+        Não há dados disponíveis
+      </div>
     </div>
 
-    <!-- Gráfico 4 -->
+    <!-- Gráfico 4: Atividades críticas -->
     <div class="graph-block small">
       <div class="graph-header">
         <div class="graph-title">
           <span>Atividades críticas por versões de projetos</span>
           <mat-icon
-            (click)="openExplanation('Atividades críticas por versões de projetos', 'Este gráfico apresenta a relação percentual entre issues críticas e não críticas para cada versão.')">help_outline</mat-icon>
+            (click)="openExplanation('Atividades críticas por versões de projetos', 'Identifica a quantidade de atividades críticas de uma versão, ressaltando a urgência e prioridade de desenvolvimento que aquela versão obteve.')">help_outline</mat-icon>
         </div>
         <hr class="divider" />
       </div>
-      <div id="critical-issues-chart"></div>
+      <div id="critical-issues-chart" [class.hidden]="!(criticalIssuesChartData && criticalIssuesChartData.length > 0)">
+      </div>
+      <div class="no-data-message" *ngIf="!(criticalIssuesChartData && criticalIssuesChartData.length > 0)">
+        Não há dados disponíveis
+      </div>
     </div>
 
-    <!-- Gráfico 5 -->
+    <!-- Gráfico 5: Variância de Planejamento -->
     <div class="graph-block small">
       <div class="graph-header">
         <div class="graph-title">
-          <span>Variância de Planejamento</span>
+          <span>Variância de planejamento</span>
           <mat-icon
-            (click)="openExplanation('Variância de Planejamento', 'Este gráfico mostra a distribuição das issues entre status concluído e outros para cada versão.')">help_outline</mat-icon>
+            (click)="openExplanation('Variância de Planejamento', 'Permite avaliar e entender a variância gerada no planejamento, em relação ao planejado e ao que realmente foi executado.')">help_outline</mat-icon>
         </div>
         <hr class="divider" />
       </div>
-      <div id="planning-variance-chart"></div>
+      <div id="planning-variance-chart" [class.hidden]="!(planningVarianceData && planningVarianceData.length > 0)">
+      </div>
+      <div class="no-data-message" *ngIf="!(planningVarianceData && planningVarianceData.length > 0)">
+        Não há dados disponíveis
+      </div>
+    </div>
+
+    <!-- Gráfico 6: Entregas por tipo de atividades -->
+    <div class="graph-block small">
+      <div class="graph-header">
+        <div class="graph-title">
+          <span>Entregas por tipo de atividades</span>
+          <mat-icon
+            (click)="openExplanation('Entregas por tipo de atividades', 'Calcula o percentual entregue por tipo de atividades de uma determina versão, identificando características específicas por meio dessa relação.')">help_outline</mat-icon>
+        </div>
+        <hr class="divider" />
+      </div>
+      <div id="delivery-chart" [class.hidden]="!(deliveryChartData && deliveryChartData.length > 0)"></div>
+      <div class="no-data-message" *ngIf="!(deliveryChartData && deliveryChartData.length > 0)">
+        Não há dados disponíveis
+      </div>
     </div>
   </div>
 </div>

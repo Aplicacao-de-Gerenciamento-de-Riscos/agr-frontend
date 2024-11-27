@@ -27,7 +27,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 350px; // Altura fixa
+    height: 380px; // Altura fixa
     flex-grow: 1; // Faz os itens ocuparem o espaço restante igualmente
     flex-basis: 0; // Resolve problemas de largura ao usar gap
     min-width: 0; // Evita que os elementos fiquem maiores que o contêiner
@@ -156,3 +156,15 @@ ngx-charts-bar-vertical-stacked {
     align-items: center;
     justify-content: flex-end;
 }
+
+.no-data-message {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 16px;
+    color: #888;
+}
+
+.hidden {
+    display: none;
+  }
+  

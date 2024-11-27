@@ -16,6 +16,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   constructor(private http: HttpClient, private dialog: MatDialog, private elementRef: ElementRef) { }
 
   private charts: any[] = []; // Armazena as instâncias dos gráficos criados
+  private selectedVersion: string | null = null; // Armazena a versão selecionada pelo usuário
 
   // Lista de projetos
   projects: {
@@ -28,7 +29,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     id: 0,
     key: 'Projeto',
     boardId: 0,
-  } // Projeto selecionado, por padrão "Todos"
+  };
 
   // Lista de versões
   versions: {
@@ -36,28 +37,30 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     name: string;
   }[] = [];
 
-  // Dados originais dos gráficos (mock com projetos e versões)
-  originalRiskPredictionData = [
-    { project: 'Projeto', version: 'Versão', risk: 0 }
-  ];
-
-  originalDeliveryChartData = [
-    { project: 'Projeto', version: 'Versão', type: 'Tipo', value: 0 }
-  ];
-
-  originalBugPercentageData = [
-    { project: 'Projeto', version: 'Versão', percentage: 20 }
-  ];
-
+  // Dados originais dos gráficos
+  originalRiskPredictionData = [{ project: 'Projeto', version: 'Versão', risk: 0 }];
+  originalDeliveryChartData = [{ project: 'Projeto', version: 'Versão', type: 'Tipo', value: 0 }];
+  originalBugPercentageData = [{ project: 'Projeto', version: 'Versão', percentage: 0 }];
   originalCriticalIssuesChartData = [
     { project: 'Projeto', version: 'Versão', type: 'Crítico', percentage: 0 },
-    { project: 'Projeto', version: 'Versão', type: 'Não Crítico', percentage: 0 }
+    { project: 'Projeto', version: 'Versão', type: 'Não Crítico', percentage: 0 },
   ];
-
   originalPlanningVarianceData = [
     { project: 'Projeto', version: 'Versão', status: 'Done', value: 0 },
     { project: 'Projeto', version: 'Versão', status: 'Outro Status', value: 0 },
   ];
+  originalEpicUsageData = [
+    { project: 'Projeto', version: 'Versão', epicName: 'Épico', timeSpent: 0 },
+  ];
+
+  private chartDataMap: { [key: string]: any[] } = {
+    'risk-prediction-chart': this.originalRiskPredictionData,
+    'delivery-chart': this.originalDeliveryChartData,
+    'bug-percentage-chart': this.originalBugPercentageData,
+    'critical-issues-chart': this.originalCriticalIssuesChartData,
+    'planning-variance-chart': this.originalPlanningVarianceData,
+    'epic-usage-chart': this.originalEpicUsageData,
+  };
 
   // Dados filtrados usados pelos gráficos
   riskPredictionData = [...this.originalRiskPredictionData];
@@ -65,6 +68,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   bugPercentageData = [...this.originalBugPercentageData];
   criticalIssuesChartData = [...this.originalCriticalIssuesChartData];
   planningVarianceData = [...this.originalPlanningVarianceData];
+  epicUsageData = [...this.originalEpicUsageData];
 
   ngOnInit(): void {
     this.fetchProjects()
@@ -88,7 +92,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             switchMap(() => this.fetchWorkPlanningVarianceMetrics(versionIds)),
             switchMap(() => this.fetchCriticalIssuesMetrics(versionIds)),
             switchMap(() => this.fetchBugIssuesMetrics(versionIds)),
-            switchMap(() => this.fetchRiskPredictionMetrics(versionIds))
+            switchMap(() => this.fetchRiskPredictionMetrics(versionIds)),
+            switchMap(() => this.fetchEpicUsageMetrics(versionIds))
           );
         })
       )
@@ -96,7 +101,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.loadProjectData(this.selectedProject.key);
         this.renderCharts();
       });
-  }  
+  }
 
   fetchProjects(): Observable<any[]> {
     const url = `${environment.apiUrl}/v1/project/all`;
@@ -125,6 +130,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     );
   }
 
+  /**
+   * Busca as métricas de entrega de cada versão utilizando o endpoint /v1/metrics/delivery-percentage
+   * @param versionIds recebe uma string com os ids de todas as versões do projeto selecionado, separados por vírgula
+   * @returns 
+   */
   fetchDeliveryMetrics(versionIds: string): Observable<any[]> {
     const url = `${environment.apiUrl}/v1/metrics/delivery-percentage?versionIds=${versionIds}`;
     return this.http.get<any[]>(url).pipe(
@@ -150,15 +160,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     );
   }
 
+  /**
+   * Busca as métricas de planejamento de trabalho de cada versão utilizando o endpoint /v1/metrics/work-planning-variance
+   * @param versionIds recebe uma string com os ids de todas as versões do projeto selecionado, separados por vírgula
+   * @returns 
+   */
   fetchWorkPlanningVarianceMetrics(versionIds: string): Observable<any[]> {
     const url = `${environment.apiUrl}/v1/metrics/work-planning-variance?versionIds=${versionIds}`;
     return this.http.get<any[]>(url).pipe(
       tap((response) => {
         // Mapeia os dados retornados para o formato necessário
-        const formattedData = response.map((item) => {
+          const formattedData = response.map((item) => {
           const totalIssues = item.issuePlanning?.totalIssues || 0;
           const doneIssues = item.issuePlanning?.totalDoneIssues || 0;
-          const otherIssues = item.issuePlanning?.totalOtherStatusIssues || 0;
 
           return [
             {
@@ -172,13 +186,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               version: item.version.name,
               status: 'Done',
               value: doneIssues
-            },
-            {
-              project: item.version.project?.key || 'Projeto Desconhecido',
-              version: item.version.name,
-              status: 'Outro Status',
-              value: otherIssues
-            },
+            }
           ];
         }).reduce((acc, curr) => acc.concat(curr), []); // Junta os arrays
 
@@ -228,30 +236,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     );
   }
 
-  onProjectChange(event: any): void {
-    const selectedProject = event.value;
-  
-    if (selectedProject) {
-      const selectedProjectId = selectedProject.id.toString();
-  
-      this.fetchVersions(selectedProjectId).subscribe(() => {
-        const versionIds = this.versions.map((version) => version.id).join(',');
-        this.fetchDeliveryMetrics(versionIds).subscribe(() => {
-          this.fetchWorkPlanningVarianceMetrics(versionIds).subscribe(() => {
-            this.fetchCriticalIssuesMetrics(versionIds).subscribe(() => {
-              this.fetchBugIssuesMetrics(versionIds).subscribe(() => {
-                this.fetchRiskPredictionMetrics(versionIds).subscribe(() => {
-                  this.loadProjectData(selectedProject.key);
-                  this.renderCharts();
-                });
-              });
-            });
-          });
-        });
-      });
-    }
-  }  
-
   fetchBugIssuesMetrics(versionIds: string): Observable<any[]> {
     const url = `${environment.apiUrl}/v1/metrics/bug-issues-relation?versionIds=${versionIds}`;
     return this.http.get<any[]>(url).pipe(
@@ -297,6 +281,59 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     );
   }
 
+  fetchEpicUsageMetrics(versionIds: string): Observable<any[]> {
+    const url = `${environment.apiUrl}/v1/metrics/epics-per-version?versionIds=${versionIds}`;
+    return this.http.get<any[]>(url).pipe(
+      tap((response) => {
+        const formattedData = response.map((item) => {
+          return item.epicsUsage.map((epic: any) => ({
+            project: item.version.project.key || 'Projeto Desconhecido',
+            version: item.version.name,
+            epicName: epic.name || 'Epic Desconhecido',
+            timeSpent: epic.timespent || 0, // Tempo gasto no épico
+          }));
+        }).reduce((acc, curr) => acc.concat(curr), []); // Junta todos os arrays
+
+        // Atualiza os dados originais e filtrados
+        this.originalEpicUsageData = formattedData;
+        this.epicUsageData = [...this.originalEpicUsageData];
+        console.log('Dados de uso de épico:', this.epicUsageData);
+      })
+    );
+  }
+
+  onProjectChange(event: any): void {
+    const selectedProject = event.value;
+
+    if (selectedProject) {
+      // Limpa a seleção de versão ao mudar o projeto
+      this.selectedVersion = null;
+
+      const selectedProjectId = selectedProject.id.toString();
+
+      this.fetchVersions(selectedProjectId).subscribe(() => {
+        const versionIds = this.versions.map((version) => version.id).join(',');
+        this.fetchDeliveryMetrics(versionIds).subscribe(() => {
+          this.fetchWorkPlanningVarianceMetrics(versionIds).subscribe(() => {
+            this.fetchCriticalIssuesMetrics(versionIds).subscribe(() => {
+              this.fetchBugIssuesMetrics(versionIds).subscribe(() => {
+                this.fetchRiskPredictionMetrics(versionIds).subscribe(() => {
+                  this.fetchEpicUsageMetrics(versionIds).subscribe(() => {
+                    // Carrega os dados do projeto selecionado
+                    this.loadProjectData(selectedProject.key);
+
+                    // Recria todos os gráficos
+                    this.renderCharts();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    }
+  }
+
   loadAllData(): void {
     // Carrega todos os dados originais
     this.riskPredictionData = [...this.originalRiskPredictionData];
@@ -304,6 +341,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.bugPercentageData = [...this.originalBugPercentageData];
     this.criticalIssuesChartData = [...this.originalCriticalIssuesChartData];
     this.planningVarianceData = [...this.originalPlanningVarianceData];
+    this.epicUsageData = [...this.originalEpicUsageData];
   }
 
   loadProjectData(project: string): void {
@@ -313,6 +351,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.bugPercentageData = this.originalBugPercentageData.filter((data) => data.project === project);
     this.criticalIssuesChartData = this.originalCriticalIssuesChartData.filter((data) => data.project === project);
     this.planningVarianceData = this.originalPlanningVarianceData.filter((data) => data.project === project);
+    this.epicUsageData = this.originalEpicUsageData.filter((data) => data.project === project);
   }
 
   openExplanation(title: string, description: string): void {
@@ -325,160 +364,180 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     // this.renderCharts();
   }
 
-  renderCharts(): void {
-    const chartHeight = 280; // Altura fixa do contêiner
+  renderCharts(excludeChartId?: string): void {
+    const chartHeight = 320;
 
-    // Função para calcular a largura do gráfico com base no elemento pai
-    const calculateChartWidth = (element: HTMLElement): number => 0.9 * (element?.parentElement?.clientWidth ?? 280);
+    const calculateChartWidth = (element: HTMLElement): number =>
+      0.9 * (element?.closest('.graph-block')?.clientWidth ?? 280);
 
-    // Limpa os gráficos antigos antes de renderizar novos
-    this.destroyCharts();
+    // Se excludeChartId não for passado, destrua todos os gráficos
+    if (!excludeChartId) {
+      this.charts.forEach(({ chart }) => chart.destroy());
+      this.charts = [];
+    } else {
+      // Caso contrário, destrua apenas os gráficos que não são o excluído
+      this.charts = this.charts.filter(({ id, chart }) => {
+        if (id !== excludeChartId) {
+          chart.destroy();
+          return false; // Remove o gráfico destruído da lista
+        }
+        return true; // Mantém o gráfico excluído
+      });
+    }
 
-    // Função genérica para renderizar gráficos
     const renderChart = (id: string, config: any): void => {
+      // Não renderiza o gráfico excluído
+      if (id === excludeChartId) return;
+
       const chartContainer = this.elementRef.nativeElement.querySelector(`#${id}`);
       if (chartContainer) {
-        // Limpa o contêiner do gráfico
         chartContainer.innerHTML = '';
 
-        // Cria e armazena a instância do gráfico
         const chart = new config.chartType(chartContainer, {
           ...config.options,
           width: calculateChartWidth(chartContainer),
           height: chartHeight,
-          appendPadding: 20, // Margem interna para evitar cortes
+          appendPadding: 20,
         });
+
+        chart.on('element:click', (evt: any) => this.handleChartInteraction(evt, id));
         chart.render();
-        this.charts.push(chart); // Armazena a instância do gráfico para destruição futura
+        this.charts.push({ id, chart });
       }
     };
 
-    // Renderizar gráficos
+    // Renderizar os gráficos, excluindo o interagido
     renderChart('risk-prediction-chart', {
-      chartType: Pie, // Tipo de gráfico de rosca
+      chartType: Line, // Altera para gráfico de linha
       options: {
-        data: this.riskPredictionData, // Dados do gráfico
-        angleField: 'risk', // Campo que representa os valores numéricos
-        colorField: 'version', // Campo que representa as categorias
-        radius: 1, // Define o tamanho da rosca
-        innerRadius: 0.4, // Define o tamanho do "furo" interno
-        label: {
-          type: 'inner', // Exibe os rótulos dentro das seções da rosca
-          offset: '-50%', // Centraliza os rótulos
-          content: '{value}%', // Mostra o valor percentual dentro da rosca
-          style: { textAlign: 'center', fontSize: 12 },
+        data: this.riskPredictionData,
+        xField: 'version', // Eixo X representará as versões
+        yField: 'risk', // Eixo Y representará o risco de atraso (percentual)
+        seriesField: 'project', // Permite agrupar por projetos, caso tenha mais de um
+        xAxis: {
+          title: { text: 'Versões' }, // Adiciona título ao eixo X
+          tickLine: null, // Remove as linhas de marcação
+          line: { style: { stroke: '#aaa' } }, // Define o estilo do eixo
+          label: {
+            autoHide: true, // Oculta rótulos que se sobrepõem
+            autoRotate: true,
+          }
+        },
+        yAxis: {
+          title: { text: 'Risco de Atraso (%)' }, // Adiciona título ao eixo Y
+          label: { formatter: (val: string) => `${val}%` }, // Formata os rótulos
+          grid: { line: { style: { stroke: '#ddd', lineWidth: 1, lineDash: [4, 4] } } }, // Configura grade
         },
         tooltip: {
           formatter: (datum: any) => ({
             name: 'Risco de Atraso',
-            value: `${datum.risk}%`, // Exibe o valor percentual
+            value: `${datum.risk}%`, // Mostra o percentual de risco
           }),
         },
         legend: {
-          position: 'bottom', // Posiciona a legenda abaixo
-          layout: 'horizontal',
+          position: 'bottom', // Move a legenda para o topo
         },
-        color: ['#882255', '#DDCC77', '#e69f00', '#d55e00', '#44AA99', '#009e74', '#117733'], // Paleta de cores
-        statistic: null, // Remove a estatística no meio do gráfico
+        color: ['#0072B2'], // Define a cor das linhas
+        smooth: true, // Suaviza a linha
+        point: {
+          size: 5, // Adiciona pontos nos dados
+          shape: 'circle',
+          style: { fill: '#fff', stroke: '#0072B2', lineWidth: 2 },
+        },
         interactions: [{ type: 'element-selected' }, { type: 'element-active' }], // Adiciona interatividade
       },
     });
 
     renderChart('delivery-chart', {
-      chartType: Bar, // Mantém o gráfico de barras horizontais
+      chartType: Bar,
       options: {
-        data: this.deliveryChartData, // Dados normalizados
-        xField: 'value', // Campo que representa os valores no eixo X
-        yField: 'version', // Campo que representa as categorias no eixo Y
-        seriesField: 'type', // Agrupamento por tipo de tarefa
-        isStack: true, // Torna as barras empilhadas
-        xAxis: {
-          title: { text: 'Percentual (%)' }, // Título do eixo X
-          grid: null, // Remove a grade
-        },
-        yAxis: {
-          title: { text: 'Versão' }, // Título do eixo Y
-          grid: null, // Remove a grade
-        },
+        data: this.deliveryChartData,
+        xField: 'value',
+        yField: 'version',
+        seriesField: 'type',
+        isStack: true,
+        xAxis: { title: { text: 'Percentual (%)' }, grid: null },
+        yAxis: { title: { text: 'Versão' }, grid: null },
         tooltip: {
           formatter: (datum: any) => ({
-            name: datum.type, // Nome do tipo de tarefa
-            value: `${datum.value}%`, // Exibe o percentual
+            name: datum.type,
+            value: `${datum.value}%`,
           }),
         },
-        legend: {
-          position: 'bottom', // Posiciona a legenda abaixo
-          layout: 'horizontal',
-        },
-        color: ['#cc79a7', '#AA4499', '#CC6677', '#882255'], // Paleta de cores atualizada
-        // label: {
-        //   position: 'middle', // Mostra os rótulos dentro das barras
-        //   formatter: (datum: any) => `${datum.value}%`, // Mostra o valor percentual
-        //   style: { fill: '#fff', fontSize: 12 }, // Ajusta estilo do rótulo
-        // },
-        interactions: [{ type: 'element-selected' }, { type: 'element-active' }], // Adiciona interatividade ao gráfico
+        legend: { position: 'bottom', layout: 'horizontal' },
+        color: ['#0072b2', '#5595EF', '#6FB3F5', '#5B6C8C', '#58D1B0', '#D3D3D3'],
+        interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
       },
     });
 
     renderChart('bug-percentage-chart', {
-      chartType: Pie, // Altera o tipo do gráfico para rosca
+      chartType: Pie,
       options: {
-        data: this.bugPercentageData, // Os dados usados para o gráfico
-        angleField: 'percentage', // Campo que representa os valores
-        colorField: 'version', // Campo que representa as categorias
-        radius: 1, // Define o tamanho da rosca (1 significa preenchida até a borda)
-        innerRadius: 0, // Define o tamanho do "furo" interno para formar a rosca
+        data:
+          this.bugPercentageData.length > 1 // Verifica se há mais de uma versão
+            ? this.bugPercentageData.filter(d => d.percentage > 1) // Aplica o filtro somente se houver várias versões
+            : this.bugPercentageData, // Caso contrário, usa todos os dados
+        angleField: 'percentage',
+        colorField: 'version',
+        radius: 1,
+        innerRadius: 0.5,
         label: {
-          type: 'inner', // Exibe os rótulos dentro das seções da rosca
-          offset: '-50%', // Centraliza os rótulos
-          content: '{value}%', // Mostra o valor percentual dentro da rosca
+          type: 'inner',
+          offset: '-50%',
+          content: ({ percentage }: { percentage: number }) => {
+            return this.bugPercentageData.length > 1 && percentage > 6 // Aplica o filtro de label apenas com várias versões
+              ? `${percentage}%`
+              : `${percentage}%`;
+          },
           style: { textAlign: 'center', fontSize: 12 },
         },
         legend: {
-          position: 'bottom', // Posiciona a legenda abaixo
-          layout: 'horizontal',
+          position: 'left',
+          layout: 'vertical',
         },
         tooltip: {
           formatter: (datum: any) => ({
-            name: datum.version, // Nome da versão
-            value: `${datum.percentage}%`, // Exibe o percentual
+            name: datum.version,
+            value: `${datum.percentage}%`,
           }),
         },
-        color: ['#0072B2', '#56B3E9', '#009E73', '#F0E442', '#E69F00', '#D55E00', '#CC79A7'], // Paleta de cores
-        interactions: [{ type: 'element-selected' }, { type: 'element-active' }], // Adiciona interatividade ao gráfico
+        color: ['#0072B2', '#56B3E9', '#009E73', '#E69F00', '#CC79A7', '#D55E00', '#F0E442'],
+        interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
+        statistic: null,
       },
     });
 
     renderChart('critical-issues-chart', {
       chartType: Column,
       options: {
-        data: this.criticalIssuesChartData, // Dados normalizados
-        xField: 'version', // Versões no eixo X
-        yField: 'percentage', // Percentual acumulado
-        seriesField: 'type', // Críticas e Não Críticas
-        isStack: true, // Torna as barras empilhadas
-        xAxis: { title: { text: 'Versão' }, grid: null },
+        data: this.criticalIssuesChartData,
+        xField: 'version',
+        yField: 'percentage',
+        seriesField: 'type',
+        isStack: true,
+        xAxis: {
+          title: {
+            text: 'Versão'
+          },
+          grid: null, label: {
+            autoHide: true, // Oculta rótulos que se sobrepõem
+            autoRotate: true,
+          }
+        },
         yAxis: {
           title: { text: 'Percentual (%)' },
           grid: null,
-          label: {
-            formatter: (val: string) => `${Number(val)}%`, // Adiciona o símbolo de porcentagem
-          },
+          label: { formatter: (val: string) => `${Number(val)}%` },
         },
         tooltip: {
           formatter: (datum: any) => ({
-            name: datum.type, // Tipo (Críticas ou Não Críticas)
-            value: `${datum.percentage}%`, // Exibe o percentual
+            name: datum.type,
+            value: `${datum.percentage}%`,
           }),
         },
-        label: {
-          position: 'middle', // Mostra os rótulos no meio das barras
-          style: { fill: '#fff' },
-          formatter: (datum: any) => `${datum.percentage}%`, // Formato do rótulo
-        },
-        color: ['#0072b2', '#56b3e9'], // Cores para Críticas e Não Críticas
-        legend: { position: 'bottom', layout: 'horizontal' }, // Legenda abaixo
-        interactions: [{ type: 'element-selected' }, { type: 'element-active' }], // Adiciona interatividade
+        color: ['#FEA71B', '#FFD63E'],
+        legend: { position: 'bottom', layout: 'horizontal' },
+        interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
       },
     });
 
@@ -490,25 +549,147 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         yField: 'value',
         seriesField: 'status',
         isStack: true,
-        xAxis: { grid: null },
+        xAxis: {
+          grid: null,
+          label: {
+            autoHide: true, // Oculta rótulos que se sobrepõem
+            autoRotate: true,
+            formatter: (val: string) => val.length > 10 ? val.substring(0, 10) + '...' : val
+          }
+        },
         yAxis: { grid: null },
         legend: { position: 'bottom', layout: 'horizontal' },
         color: ['#44AA99', '#0072b2', '#56b3e9'],
+        interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
+        smooth: true, // Suaviza a linha
+        point: {
+          size: 3
+          , // Adiciona pontos nos dados
+          shape: 'circle',
+          style: { fill: '#fff', stroke: '#0072B2', lineWidth: 2 },
+        },
+      },
+    });
+
+    renderChart('epic-usage-chart', {
+      chartType: Bar,
+      options: {
+        data: this.epicUsageData,
+        xField: 'timeSpent',
+        yField: 'version',
+        seriesField: 'epicName',
+        isStack: true,
+        xAxis: {
+          title: { text: 'Tempo Gasto (horas)' },
+          grid: null,
+          label: {
+            autoHide: true,
+            autoRotate: true,
+          },
+        },
+        yAxis: {
+          title: { text: 'Épicos' },
+          grid: null,
+          label: {
+            autoHide: true,
+            autoRotate: true,
+          },
+        },
+        tooltip: {
+          formatter: (datum: any) => ({
+            name: datum.epicName,
+            value: `${datum.timeSpent} horas`,
+          }),
+        },
+        legend: {
+          position: 'bottom',
+          layout: 'horizontal',
+        },
+        color: ['#00579D', '#0090C5', '#64C3D5', '#82A584', '#A5C860'],
         interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
       },
     });
   }
 
-  // Destroi todos os gráficos antigos
-  private destroyCharts(): void {
-    // Destroi as instâncias de gráficos
-    this.charts.forEach((chart) => chart.destroy());
-    this.charts = []; // Limpa a lista de gráficos
+  handleChartInteraction(evt: any, chartId: string): void {
+    const clickedVersion = evt.data?.data?.version;
 
-    // Limpa o conteúdo dos contêineres dos gráficos
-    const chartContainers = this.elementRef.nativeElement.querySelectorAll('.chart-container');
-    chartContainers.forEach((container: HTMLElement) => {
-      container.innerHTML = ''; // Remove o conteúdo do contêiner
+    if (chartId !== 'risk-prediction-chart') {
+      return;
+    }
+
+    if (this.selectedVersion === clickedVersion) {
+      // Deseleciona a versão e restaura os dados originais
+      this.selectedVersion = null;
+      this.filterChartsByVersion(null, chartId);
+    } else {
+      // Define a versão selecionada e filtra os gráficos
+      this.selectedVersion = clickedVersion;
+      this.filterChartsByVersion(clickedVersion, chartId);
+    }
+
+    // Re-renderiza os gráficos
+    this.renderCharts(chartId);
+  }
+
+  filterChartsByVersion(version: string | null, excludeChartId?: string): void {
+    if (!version) {
+      // Restaura todos os dados originais ao deselecionar a versão
+      this.loadAllData();
+    } else {
+      // Filtra os dados para a versão selecionada
+      if (excludeChartId !== 'risk-prediction-chart') {
+        this.riskPredictionData = this.originalRiskPredictionData.filter(
+          (data) => data.version === version
+        );
+      }
+
+      if (excludeChartId !== 'delivery-chart') {
+        this.deliveryChartData = this.originalDeliveryChartData.filter(
+          (data) => data.version === version
+        );
+      }
+
+      if (excludeChartId !== 'bug-percentage-chart') {
+        this.bugPercentageData = this.originalBugPercentageData.filter(
+          (data) => data.version === version
+        );
+      }
+
+      if (excludeChartId !== 'critical-issues-chart') {
+        this.criticalIssuesChartData = this.originalCriticalIssuesChartData.filter(
+          (data) => data.version === version
+        );
+      }
+
+      if (excludeChartId !== 'planning-variance-chart') {
+        this.planningVarianceData = this.originalPlanningVarianceData.filter(
+          (data) => data.version === version
+        );
+      }
+
+      if (excludeChartId !== 'epic-usage-chart') {
+        this.epicUsageData = this.originalEpicUsageData.filter(
+          (data) => data.version === version
+        );
+      }
+    }
+  }
+
+  capitalizeChartKey(chartId: string): string {
+    return chartId
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('');
+  }
+
+  destroyCharts(excludeChartId?: string): void {
+    this.charts.forEach((chart) => {
+      if (chart.id !== excludeChartId) {
+        chart.chart.destroy();
+      }
     });
+
+    this.charts = this.charts.filter((chart) => chart.id === excludeChartId);
   }
 }
