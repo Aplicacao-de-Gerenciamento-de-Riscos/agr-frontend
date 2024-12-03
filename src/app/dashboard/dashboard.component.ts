@@ -170,7 +170,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     return this.http.get<any[]>(url).pipe(
       tap((response) => {
         // Mapeia os dados retornados para o formato necessário
-          const formattedData = response.map((item) => {
+        const formattedData = response.map((item) => {
           const totalIssues = item.issuePlanning?.totalIssues || 0;
           const doneIssues = item.issuePlanning?.totalDoneIssues || 0;
 
@@ -285,14 +285,25 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const url = `${environment.apiUrl}/v1/metrics/epics-per-version?versionIds=${versionIds}`;
     return this.http.get<any[]>(url).pipe(
       tap((response) => {
-        const formattedData = response.map((item) => {
-          return item.epicsUsage.map((epic: any) => ({
-            project: item.version.project.key || 'Projeto Desconhecido',
-            version: item.version.name,
-            epicName: epic.name || 'Epic Desconhecido',
-            timeSpent: epic.timespent || 0, // Tempo gasto no épico
-          }));
-        }).reduce((acc, curr) => acc.concat(curr), []); // Junta todos os arrays
+        const formattedData = response
+          .map((item) => {
+            return item.epicsUsage.map((epic: any) => ({
+              project: item.version.project.key || 'Projeto Desconhecido',
+              version: item.version.name,
+              epicName: epic.name || 'Epic Desconhecido',
+              timeSpent: epic.timespent || 0, // Tempo gasto no épico
+              version_epic: `${item.version.name}_${epic.name}`, // Chave composta
+            }));
+          })
+          .reduce((acc, curr) => acc.concat(curr), []); // Junta todos os arrays
+
+        // Ordenar por versão e depois por épico (para garantir a consistência)
+        formattedData.sort((a: { version: string; epicName: string; }, b: { version: any; epicName: any; }) => {
+          if (a.version === b.version) {
+            return a.epicName.localeCompare(b.epicName); // Ordenar pelo nome do épico dentro da versão
+          }
+          return a.version.localeCompare(b.version); // Ordenar por versão
+        });
 
         // Atualiza os dados originais e filtrados
         this.originalEpicUsageData = formattedData;
@@ -415,7 +426,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         yField: 'risk', // Eixo Y representará o risco de atraso (percentual)
         seriesField: 'project', // Permite agrupar por projetos, caso tenha mais de um
         xAxis: {
-          title: { text: 'Versões' }, // Adiciona título ao eixo X
+          title: { text: 'Versão', style: { fontWeight: 'bold' } }, // Adiciona título ao eixo X
           tickLine: null, // Remove as linhas de marcação
           line: { style: { stroke: '#aaa' } }, // Define o estilo do eixo
           label: {
@@ -424,7 +435,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           }
         },
         yAxis: {
-          title: { text: 'Risco de Atraso (%)' }, // Adiciona título ao eixo Y
+          title: { text: 'Risco de Atraso (%)', style: { fontWeight: 'bold' } }, // Adiciona título ao eixo Y
           label: { formatter: (val: string) => `${val}%` }, // Formata os rótulos
           grid: { line: { style: { stroke: '#ddd', lineWidth: 1, lineDash: [4, 4] } } }, // Configura grade
         },
@@ -456,8 +467,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         yField: 'version',
         seriesField: 'type',
         isStack: true,
-        xAxis: { title: { text: 'Percentual (%)' }, grid: null },
-        yAxis: { title: { text: 'Versão' }, grid: null },
+        xAxis: { title: { text: 'Percentual (%)', style: { fontWeight: 'bold' } }, grid: null },
+        yAxis: { title: { text: 'Versão', rotate: -1.55, style: { fontWeight: 'bold' } }, grid: null },
         tooltip: {
           formatter: (datum: any) => ({
             name: datum.type,
@@ -494,6 +505,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         legend: {
           position: 'left',
           layout: 'vertical',
+          title: { text: 'Versão', style: { fontWeight: 'bold' } },
         },
         tooltip: {
           formatter: (datum: any) => ({
@@ -517,7 +529,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         isStack: true,
         xAxis: {
           title: {
-            text: 'Versão'
+            text: 'Versão',
+            style: { fontWeight: 'bold' }
           },
           grid: null, label: {
             autoHide: true, // Oculta rótulos que se sobrepõem
@@ -525,7 +538,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           }
         },
         yAxis: {
-          title: { text: 'Percentual (%)' },
+          title: { text: 'Percentual (%)', style: { fontWeight: 'bold' } },
           grid: null,
           label: { formatter: (val: string) => `${Number(val)}%` },
         },
@@ -550,6 +563,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         seriesField: 'status',
         isStack: true,
         xAxis: {
+          title: {
+            text: 'Versão',
+            style: { fontWeight: 'bold' }
+          },
           grid: null,
           label: {
             autoHide: true, // Oculta rótulos que se sobrepõem
@@ -557,7 +574,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             formatter: (val: string) => val.length > 10 ? val.substring(0, 10) + '...' : val
           }
         },
-        yAxis: { grid: null },
+        yAxis: {
+          title: {
+            text: 'Qtd de Atividades',
+            style: { fontWeight: 'bold' }
+          }, grid: null
+        },
         legend: { position: 'bottom', layout: 'horizontal' },
         color: ['#44AA99', '#0072b2', '#56b3e9'],
         interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
@@ -577,34 +599,26 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         data: this.epicUsageData,
         xField: 'timeSpent',
         yField: 'version',
-        seriesField: 'epicName',
+        seriesField: 'version_epic', // Usar a chave composta version_epic para o agrupamento
         isStack: true,
         xAxis: {
-          title: { text: 'Tempo Gasto (horas)' },
+          title: { text: 'Tempo Gasto (horas)', style: { fontWeight: 'bold' } },
           grid: null,
-          label: {
-            autoHide: true,
-            autoRotate: true,
-          },
+          label: { autoHide: true, autoRotate: true },
         },
         yAxis: {
-          title: { text: 'Épicos' },
+          //deixar em negrito o título do eixo Y
+          title: { text: 'Épicos', rotate: -1.55, style: { fontWeight: 'bold' } },
           grid: null,
-          label: {
-            autoHide: true,
-            autoRotate: true,
-          },
+          label: { autoHide: true, autoRotate: true },
         },
         tooltip: {
           formatter: (datum: any) => ({
-            name: datum.epicName,
+            name: datum.version_epic, // Exibe a chave composta no tooltip
             value: `${datum.timeSpent} horas`,
           }),
         },
-        legend: {
-          position: 'bottom',
-          layout: 'horizontal',
-        },
+        legend: { position: 'bottom', layout: 'horizontal' },
         color: ['#00579D', '#0090C5', '#64C3D5', '#82A584', '#A5C860'],
         interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
       },
