@@ -503,7 +503,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           style: { textAlign: 'center', fontSize: 12 },
         },
         legend: {
-          position: 'left',
+          position: 'bottom',
           layout: 'vertical',
           title: { text: 'Versão', style: { fontWeight: 'bold' } },
         },
