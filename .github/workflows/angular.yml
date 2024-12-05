@@ -1,57 +1,100 @@
+# Nome do workflow: Angular CI/CD Pipeline
+# Este workflow automatiza o processo de integração contínua (CI) e entrega contínua (CD) da sua aplicação Angular.
+# Ele será acionado em pushs para as branches master, main, e test-pipeline, assim como em pushs de tags,
+# e também em pull requests direcionadas para master e main.
+
 name: Angular CI/CD Pipeline
 
 on:
+  # Dispara o workflow quando há push para as branches "master", "main" e "test-pipeline"
+  # ou quando qualquer tag é empurrada. Também é acionado em pull requests direcionadas
+  # às branches "master" e "main".
   push:
-    branches: [ "master", "main", "test-pipeline" ]
+    branches: [ "master", "main" ]
     tags: [ "*" ]
   pull_request:
     branches: [ "master", "main" ]
 
 jobs:
   build:
-
+    # Define o job chamado "build" que irá rodar em um runner Ubuntu.
     runs-on: ubuntu-latest
 
+    # Estratégia de matrix para rodar o job com diferentes versões do Node.js.
+    # Aqui, está especificado apenas "16.x", mas é possível adicionar mais versões.
     strategy:
       matrix:
         node-version: [16.x]
 
     steps:
+      # 1. Checkout do Código:
+      # Usa a ação oficial "checkout" para clonar o repositório no runner,
+      # permitindo acesso ao código para testes e build.
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # 2. Configurar Node.js:
+      # Usa a ação "setup-node" para instalar e configurar a versão do Node.js
+      # especificada na matrix. Também habilita cache para dependências npm,
+      # acelerando builds futuros.
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+      # 3. Instalar Dependências:
+      # Executa "npm install" para instalar todas as dependências do projeto.
       - name: Install Dependencies
         run: npm install
 
+      # 4. Executar Testes Unitários:
+      # Executa o script "test:ci" definido no package.json, que roda testes
+      # sem watch, usando o launcher ChromeHeadlessCI configurado no karma.conf.js.
+      # Isso garante que os testes unitários sejam executados no ambiente de CI.
       - name: Run Unit Tests
         run: npm run test:ci
 
+      # 5. Build da Aplicação em Produção:
+      # Executa "npm run build -- --prod" para construir a aplicação usando a
+      # configuração de produção. Note que "--prod" está deprecado, e recomenda-se
+      # usar "ng build --configuration production". Atualize caso necessário.
       - name: Build Application
         run: npm run build -- --prod
 
+      # 6. Compactar Artefatos de Build:
+      # Cria um arquivo ZIP da pasta dist/ (onde o build final do Angular é gerado).
+      # Isso facilita o upload e distribuição do artefato do build.
       - name: Zip Build Artifacts
         run: zip -r dist.zip dist/
 
+      # 7. Fazer Upload do Artefato de Build:
+      # Usa a ação "upload-artifact" para enviar o arquivo dist.zip como um artefato
+      # do workflow, permitindo o download posterior do build gerado.
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
           name: angular-build
           path: dist.zip
 
+      # 8. Listar Arquivos no Diretório dist/:
+      # Apenas para depuração. Lista todos os arquivos na pasta dist/ para verificar
+      # o resultado do build.
       - name: List Files in dist/
         run: ls -la dist/
 
+      # 9. Criar Release (somente se uma tag foi empurrada):
+      # Usa a ação "create-release" para criar uma nova release no GitHub
+      # quando o push for de uma tag. A release será criada com o nome da tag.
+      # É necessário fornecer um token GITHUB_TOKEN ou um token pessoal (GTOKEN)
+      # com permissões adequadas.
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         id: create_release
         uses: actions/create-release@v1
         env:
+          # GTOKEN é um segredo armazenado no repositório, contendo um token
+          # de acesso pessoal com permissões para criar releases.
           GITHUB_TOKEN: ${{ secrets.GTOKEN }}
         with:
           tag_name: ${{ github.ref_name }}
@@ -59,6 +102,10 @@ jobs:
           draft: false
           prerelease: false
 
+      # 10. Enviar Artefato para a Release:
+      # Usa a ação "upload-release-asset" para anexar o artefato (dist.zip)
+      # criado anteriormente à release recém-criada. Assim, qualquer um que acessar
+      # a release poderá baixar o build da aplicação.
       - name: Upload Release Asset
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-release-asset@v1
