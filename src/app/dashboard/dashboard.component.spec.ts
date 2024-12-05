@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { of } from 'rxjs';
 
 describe('DashboardComponent', () => {
@@ -24,6 +26,8 @@ describe('DashboardComponent', () => {
         MatIconModule,
         MatListModule,
         MatDialogModule,
+        MatFormFieldModule,
+        MatSelectModule,
         HttpClientTestingModule
       ],
       providers: [

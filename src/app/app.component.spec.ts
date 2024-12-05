@@ -6,8 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { of } from 'rxjs';
 
 describe('AppComponent', () => {
@@ -24,6 +25,8 @@ describe('AppComponent', () => {
         MatIconModule,
         MatListModule,
         MatDialogModule,
+        MatFormFieldModule,
+        MatSelectModule,
         HttpClientTestingModule
       ],
       declarations: [
@@ -31,9 +34,7 @@ describe('AppComponent', () => {
       ],
       providers: [
         { provide: MatDialog, useValue: mockDialog },
-      ],
-      // Remova o NO_ERRORS_SCHEMA para garantir que todos os elementos sejam verificados
-      schemas: []
+      ]
     }).compileComponents();
   });
 
