@@ -38,20 +38,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }[] = [];
 
   // Dados originais dos gráficos
-  originalRiskPredictionData = [{ project: 'Projeto', version: 'Versão', risk: 0 }];
-  originalDeliveryChartData = [{ project: 'Projeto', version: 'Versão', type: 'Tipo', value: 0 }];
-  originalBugPercentageData = [{ project: 'Projeto', version: 'Versão', percentage: 0 }];
-  originalCriticalIssuesChartData = [
-    { project: 'Projeto', version: 'Versão', type: 'Crítico', percentage: 0 },
-    { project: 'Projeto', version: 'Versão', type: 'Não Crítico', percentage: 0 },
-  ];
-  originalPlanningVarianceData = [
-    { project: 'Projeto', version: 'Versão', status: 'Done', value: 0 },
-    { project: 'Projeto', version: 'Versão', status: 'Outro Status', value: 0 },
-  ];
-  originalEpicUsageData = [
-    { project: 'Projeto', version: 'Versão', epicName: 'Épico', timeSpent: 0 },
-  ];
+  originalRiskPredictionData: any[] = [];
+  originalDeliveryChartData: any[] = [];
+  originalBugPercentageData: any[] = [];
+  originalCriticalIssuesChartData: any[] = [];
+  originalPlanningVarianceData: any[] = [];
+  originalEpicUsageData: any[] = [];
 
   private chartDataMap: { [key: string]: any[] } = {
     'risk-prediction-chart': this.originalRiskPredictionData,
@@ -139,26 +131,39 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const url = `${environment.apiUrl}/v1/metrics/delivery-percentage?versionIds=${versionIds}`;
     return this.http.get<any[]>(url).pipe(
       tap((response) => {
-        // Mapeia e transforma os dados sem usar flatMap
+        // Mapeia e transforma os dados de maneira que cada 'issueType' tenha barras de 'Estimado' e 'Gasto'
         const formattedData = response
           .map((item) => {
-            return item.delieveryPercentagePerIssueType.map((metric: { issueType: any; donePercentage: any; }) => ({
-              project: this.projects.find(project => project.id === item.version.project?.id)?.key || 'Projeto Desconhecido',
-              version: item.version.name,
-              type: metric.issueType,
-              value: metric.donePercentage,
-            }));
+            return item.delieveryPercentagePerIssueType.map((metric: { issueType: any; timeEstimate: number; timeSpent: number; }) => [
+              // Barra de 'Estimado'
+              {
+                project: this.projects.find(project => project.id === item.version.project?.id)?.key || 'Projeto Desconhecido',
+                version: item.version.name,
+                type: `${metric.issueType}`, // Identifica a barra de estimado
+                value: metric.timeEstimate, // Convertendo de milissegundos para horas
+                estimatedAndSpent: 'Estimado', // Identificador de estimado
+              },
+              // Barra de 'Gasto'
+              {
+                project: this.projects.find(project => project.id === item.version.project?.id)?.key || 'Projeto Desconhecido',
+                version: item.version.name,
+                type: `${metric.issueType}`, // Identifica a barra de gasto
+                value: metric.timeSpent, // Convertendo de milissegundos para horas
+                estimatedAndSpent: 'Gasto', // Identificador de gasto
+              }
+            ]);
           })
-          .reduce((acc, curr) => acc.concat(curr), []); // Junta os arrays resultantes
-
+          .reduce((acc, curr) => acc.concat(curr), []).reduce((acc: string | any[], curr: any) => acc.concat(curr), []); // Achata os arrays em um único array
+  
         // Atualiza os dados originais
         this.originalDeliveryChartData = formattedData;
-
+  
         // Atualiza os dados filtrados
         this.deliveryChartData = [...this.originalDeliveryChartData];
+        console.log('Dados de entrega:', this.deliveryChartData);
       })
     );
-  }
+  }  
 
   /**
    * Busca as métricas de planejamento de trabalho de cada versão utilizando o endpoint /v1/metrics/work-planning-variance
@@ -167,25 +172,27 @@ export class DashboardComponent implements OnInit, AfterViewInit {
    */
   fetchWorkPlanningVarianceMetrics(versionIds: string): Observable<any[]> {
     const url = `${environment.apiUrl}/v1/metrics/work-planning-variance?versionIds=${versionIds}`;
+
     return this.http.get<any[]>(url).pipe(
       tap((response) => {
         // Mapeia os dados retornados para o formato necessário
         const formattedData = response.map((item) => {
-          const totalIssues = item.issuePlanning?.totalIssues || 0;
-          const doneIssues = item.issuePlanning?.totalDoneIssues || 0;
+          // Dados de tempo estimado e tempo gasto
+          const totalTimeEstimate = (item.issuePlanning?.totalTimeEstimateInDone || 0) + (item.issuePlanning?.totalTimeEstimateOtherStatus || 0);
+          const totalTimeSpent = item.issuePlanning?.totalTimeSpentInDone || 0;
 
           return [
             {
               project: item.version.project?.key || 'Projeto Desconhecido',
               version: item.version.name,
-              status: 'Planejado',
-              value: totalIssues,
+              status: 'Planejado', // 'Planejado' agora é o total de horas estimadas
+              value: totalTimeEstimate, // Valor é o total de horas estimadas
             },
             {
               project: item.version.project?.key || 'Projeto Desconhecido',
               version: item.version.name,
-              status: 'Done',
-              value: doneIssues
+              status: 'Done', // 'Done' agora é o total de horas usadas
+              value: totalTimeSpent // Valor é o total de horas usadas em 'Done'
             }
           ];
         }).reduce((acc, curr) => acc.concat(curr), []); // Junta os arrays
@@ -464,15 +471,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       options: {
         data: this.deliveryChartData,
         xField: 'value',
-        yField: 'version',
-        seriesField: 'type',
+        yField: 'type',
+        seriesField: 'estimatedAndSpent',
         isStack: true,
-        xAxis: { title: { text: 'Percentual (%)', style: { fontWeight: 'bold' } }, grid: null },
-        yAxis: { title: { text: 'Versão', rotate: -1.55, style: { fontWeight: 'bold' } }, grid: null },
+        xAxis: { title: { text: 'Horas (h)', style: { fontWeight: 'bold' } }, grid: null },
+        yAxis: { title: { text: 'Tipo de Issue', rotate: -1.55, style: { fontWeight: 'bold' } }, grid: null },
         tooltip: {
           formatter: (datum: any) => ({
             name: datum.type,
-            value: `${datum.value}%`,
+            value: `${datum.value} horas (${datum.estimatedAndSpent})`,
           }),
         },
         legend: { position: 'bottom', layout: 'horizontal' },
@@ -558,37 +565,40 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       chartType: Area,
       options: {
         data: this.planningVarianceData,
-        xField: 'version',
-        yField: 'value',
-        seriesField: 'status',
-        isStack: true,
+        xField: 'version',       // Eixo X será as versões
+        yField: 'value',         // Eixo Y será o valor das horas (estimadas ou gastas)
+        seriesField: 'status',   // Diferencia entre "Planejado" e "Done"
+        isStack: true,           // Empilhamento dos valores
         xAxis: {
           title: {
-            text: 'Versão',
+            text: 'Versão',        // Título do eixo X
             style: { fontWeight: 'bold' }
           },
           grid: null,
           label: {
-            autoHide: true, // Oculta rótulos que se sobrepõem
+            autoHide: true,        // Oculta rótulos que se sobrepõem
             autoRotate: true,
-            formatter: (val: string) => val.length > 10 ? val.substring(0, 10) + '...' : val
+            formatter: (val: string) => val.length > 10 ? val.substring(0, 10) + '...' : val  // Formatação de rótulos
           }
         },
         yAxis: {
           title: {
-            text: 'Qtd de Atividades',
+            text: 'Horas',         // Título do eixo Y será "Horas"
             style: { fontWeight: 'bold' }
-          }, grid: null
+          },
+          grid: null
         },
-        legend: { position: 'bottom', layout: 'horizontal' },
-        color: ['#44AA99', '#0072b2', '#56b3e9'],
-        interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
-        smooth: true, // Suaviza a linha
+        legend: {
+          position: 'bottom',     // Posição da legenda
+          layout: 'horizontal'    // Layout horizontal da legenda
+        },
+        color: ['#44AA99', '#0072b2'],  // Cores para as séries
+        interactions: [{ type: 'element-selected' }, { type: 'element-active' }],  // Interações
+        smooth: true,            // Suaviza as linhas
         point: {
-          size: 3
-          , // Adiciona pontos nos dados
-          shape: 'circle',
-          style: { fill: '#fff', stroke: '#0072B2', lineWidth: 2 },
+          size: 3,                // Tamanho dos pontos nos dados
+          shape: 'circle',        // Forma dos pontos
+          style: { fill: '#fff', stroke: '#0072B2', lineWidth: 2 }  // Estilo dos pontos
         },
       },
     });
